@@ -11,3 +11,6 @@ class Settings(BaseSettings):
     project_id: str = ''
     dataset_id: str = ''
     table_id: str = ''
+
+    REDIS_HOST: str = ""
+    REDIS_PORT: int = 6379
