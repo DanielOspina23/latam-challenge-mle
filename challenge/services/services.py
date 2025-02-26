@@ -6,6 +6,8 @@ from fastapi import HTTPException
 
 from challenge.db.db_functions import save_metrics_to_bigquery
 from challenge.model import DelayModel
+from challenge.schemas.templates import RequestTemplate
+from challenge.services.redis_service import cache_prediction, generate_request_key, get_cached_prediction
 from challenge.settings import Settings
 from challenge.storage.storage_functions import save_model_in_storage, get_file, get_training_data, get_trained_model
 from challenge.utils.utils import load_data_from_csv
@@ -35,13 +37,21 @@ def train_model(bucket_name: str, cloud_data: bool) -> str:
     return file_name
 
 
-def predict_service(data: list) -> list:
+def predict_service(data: RequestTemplate) -> list:
+
+    request_key = generate_request_key(data=data)
+    cached_result = get_cached_prediction(request_key)
+    if cached_result:
+        return cached_result
 
     data = [flight.__dict__ for flight in data]
     features = pd.DataFrame(data)
     features = model.preprocess(data=features)
 
-    return model.predict(features=features)
+    predictions = model.predict(features=features)
+    cache_prediction(key=request_key, result=predictions)
+
+    return predictions
 
 
 def update_model(model_name: str = None, cloud: bool = False):
