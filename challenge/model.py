@@ -1,14 +1,20 @@
+import pickle
+
 import numpy as np
 import pandas as pd
 
 from typing import Tuple, Union, List
 
+import xgboost
 from fastapi import HTTPException
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 
+from challenge.settings import Settings
 from challenge.utils.preprocessor import Preprocessor
+
+settings = Settings()
 
 
 class DelayModel:
@@ -30,7 +36,7 @@ class DelayModel:
             "OPERA_Sky Airline",
             "OPERA_Copa Air"
         ]
-        self._threshold_in_minutes = 15
+        self._threshold_in_minutes = settings.DELAY_THRESHOLD
 
     def preprocess(
         self,
@@ -69,9 +75,9 @@ class DelayModel:
 
         if target_column:
             target = data[target_column]
-            return features[self.top_10_features], target
+            return features[self.top_10_features], target.to_frame()
 
-        features = features.reindex(self.top_10_features, fill_value=0)
+        features = features.reindex(columns=self.top_10_features, fill_value=0)
 
         return features[self.top_10_features]
 
@@ -88,11 +94,11 @@ class DelayModel:
             target (pd.DataFrame): target.
         """
 
-        x_train, x_test, y_train, y_test = train_test_split(features, target, test_size=0.33)
+        x_train, x_test, y_train, y_test = train_test_split(features, target, test_size=0.33, random_state=42)
 
-        model = LogisticRegression(
-            class_weight={1: len(y_train[y_train == 1]) / len(y_train), 0: len(y_train[y_train == 0]) / len(y_train)}
-        )
+        scale = len(y_train[y_train.delay == 0]) / len(y_train[y_train.delay == 1])
+        model = xgboost.XGBClassifier(random_state=1, learning_rate=0.01, scale_pos_weight=scale)
+
         model.fit(x_train, y_train)
         y_pred = model.predict(x_test)
 
@@ -115,9 +121,13 @@ class DelayModel:
         """
 
         if self._model is None:
-            raise HTTPException(status_code=500, detail='There are no model in the bucket.')
+            with open("./models/model.pkl", "rb") as saved_model:
+                model = pickle.load(saved_model)
+                self._model = model
 
-        return self._model.predict(features).tolist()
+        predictions = np.array(self._model.predict(features))
+
+        return predictions.tolist()
 
     def load_model(self, model):
         self._model = model
