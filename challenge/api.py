@@ -40,18 +40,18 @@ async def post_predict(data: RequestTemplate) -> dict:
 @app.post('/fit', status_code=200)
 async def post_fit(request: FitRequestTemplate) -> dict:
     try:
-        trained_model = train_model(bucket_name=request.bucket_name)
+        trained_model = train_model(bucket_name=request.bucket_name, cloud_data=request.cloud_data)
         return {"trained_model": trained_model}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred during training: {str(e)}")
 
 
 @app.get('/update-model', status_code=200)
-async def force_update_model(model_id: str) -> dict:
+async def force_update_model(model_id: str, cloud: bool) -> dict:
     if model_id.endswith('.pkl'):
         raise HTTPException(status_code=400, detail='Model id should not have extension')
     try:
-        await update_model(model_name=f'{model_id}.pkl')
+        await update_model(model_name=f'{model_id}.pkl', cloud=cloud)
         return {'updated_model': model_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f'An error occurred during updating model: {str(e)}')

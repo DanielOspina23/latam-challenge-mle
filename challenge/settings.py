@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     BASE_PATH: str = f'/api/{APP_NAME}'
 
     MODELS_BUCKET_NAME: str = ''
+    DELAY_THRESHOLD: int = 15
     project_id: str = ''
     dataset_id: str = ''
     table_id: str = ''
