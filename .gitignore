@@ -1,0 +1,41 @@
+# Entorno virtual
+venv/
+.env/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Archivos de caché de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Configuración de PyCharm
+.idea/
+
+# Logs y archivos temporales
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Archivos de salida de Jupyter Notebooks
+.ipynb_checkpoints/
+
+# Configuración de sistema operativo
+.DS_Store
+Thumbs.db
+
+# Dependencias instaladas
+poetry.lock
+
+# Archivos de Docker
+docker-compose.override.yml
+
+# Claves y credenciales
+*.pem
+*.key
+*.crt
+*.p12
+.env
+
