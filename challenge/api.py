@@ -5,6 +5,7 @@ from fastapi import HTTPException
 from challenge.schemas.templates import RequestTemplate, FitRequestTemplate
 from challenge.services.services import train_model, predict_service, update_model
 from challenge.settings import Settings
+from challenge.utils.logger import get_logger
 
 settings = Settings()
 
@@ -14,6 +15,8 @@ app = fastapi.FastAPI(
     description='API to calculate probability of flight delay'
 )
 
+logger = get_logger()
+
 
 @app.on_event('startup')
 async def startup():
@@ -22,6 +25,7 @@ async def startup():
 
 @app.get("/health", status_code=200)
 async def get_health() -> dict:
+    logger.info("Request received for the health endpoint")
     return {
         "status": "OK"
     }
@@ -39,6 +43,7 @@ async def post_predict(data: RequestTemplate) -> dict:
 
 @app.post('/fit', status_code=200)
 async def post_fit(request: FitRequestTemplate) -> dict:
+    logger.info("Request received for the fit endpoint")
     try:
         trained_model = train_model(bucket_name=request.bucket_name, cloud_data=request.cloud_data)
         return {"trained_model": trained_model}
