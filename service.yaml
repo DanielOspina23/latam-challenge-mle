@@ -1,0 +1,25 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: flight-delay
+  annotations:
+    run.googleapis.com/vpc-access-connector: projects/tribal-map-452115-g0/locations/us-east1/connectors/my-connector
+    run.googleapis.com/vpc-access-egress: all
+spec:
+  template:
+    spec:
+      containers:
+        - image: us-east1-docker.pkg.dev/tribal-map-452115-g0/latam-challenge-daniel-ospina/flight-delay:latest
+          env:
+            - name: dataset_id
+              value: challenge_latam
+            - name: MODELS_BUCKET_NAME
+              value: models_challenge_daniel_ospina
+            - name: project_id
+              value: tribal-map-452115-g0
+            - name: table_id
+              value: training_metrics
+            - name: REDIS_HOST
+              value: 10.151.64.163
+          ports:
+            - containerPort: 8080

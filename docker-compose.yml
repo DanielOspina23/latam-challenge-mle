@@ -1,0 +1,28 @@
+version: '3.9'
+
+services:
+  flight-delay:
+    build:
+      context: .
+      args:
+        SETUPTOOLS_USE_DISTUTILS: stdlib
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7.0-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

@@ -38,4 +38,11 @@ docker-compose.override.yml
 *.crt
 *.p12
 .env
+credentials.json
+
+# Tests
+.coverage
+.coverage.*
+
+reports/
 

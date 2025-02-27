@@ -1,14 +1,20 @@
+import pickle
+
 import numpy as np
 import pandas as pd
 
 from typing import Tuple, Union, List
 
+import xgboost
 from fastapi import HTTPException
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 
+from challenge.settings import Settings
 from challenge.utils.preprocessor import Preprocessor
+
+settings = Settings()
 
 
 class DelayModel:
@@ -16,7 +22,7 @@ class DelayModel:
     def __init__(
         self
     ):
-        self._model = None # Model should be saved in this attribute.
+        self._model = None  # Model should be saved in this attribute.
         self.preprocessor = Preprocessor()
         self.top_10_features = [
             "OPERA_Latin American Wings",
@@ -30,7 +36,7 @@ class DelayModel:
             "OPERA_Sky Airline",
             "OPERA_Copa Air"
         ]
-        self._threshold_in_minutes = 15
+        self._threshold_in_minutes = settings.DELAY_THRESHOLD
 
     def preprocess(
         self,
@@ -51,10 +57,11 @@ class DelayModel:
         """
 
         try:
-            data['period_day'] = data['Fecha-I'].apply(self.preprocessor.get_period_day)
-            data['high_season'] = data['Fecha-I'].apply(self.preprocessor.is_high_season)
-            data['min_diff'] = data.apply(self.preprocessor.get_min_diff, axis=1)
-            data['delay'] = np.where(data['min_diff'] > self._threshold_in_minutes, 1, 0)
+            if 'Fecha-I' in data and 'Fecha-O' in data:
+                data['period_day'] = data['Fecha-I'].apply(self.preprocessor.get_period_day)
+                data['high_season'] = data['Fecha-I'].apply(self.preprocessor.is_high_season)
+                data['min_diff'] = data.apply(self.preprocessor.get_min_diff, axis=1)
+                data['delay'] = np.where(data['min_diff'] > self._threshold_in_minutes, 1, 0)
 
             features = pd.concat([
                 pd.get_dummies(data['OPERA'], prefix='OPERA'),
@@ -66,11 +73,15 @@ class DelayModel:
         except Exception:
             raise HTTPException(status_code=500, detail="Internal server error")
 
+        for column in self.top_10_features:
+            if column not in features.columns:
+                features[column] = 0
+
         if target_column:
             target = data[target_column]
-            return features[self.top_10_features], target
+            return features[self.top_10_features].reindex(columns=self.top_10_features, fill_value=0), target.to_frame()
 
-        return features[self.top_10_features]
+        return features[self.top_10_features].reindex(columns=self.top_10_features, fill_value=0)
 
     def fit(
         self,
@@ -85,15 +96,15 @@ class DelayModel:
             target (pd.DataFrame): target.
         """
 
-        x_train, x_test, y_train, y_test = train_test_split(features, target, test_size=0.33)
+        x_train, x_test, y_train, y_test = train_test_split(features, target, test_size=0.33, random_state=42)
 
-        model = LogisticRegression(
-            class_weight={1: len(y_train[y_train == 1]) / len(y_train), 0: len(y_train[y_train == 0]) / len(y_train)}
-        )
+        scale = len(y_train[y_train.delay == 0]) / len(y_train[y_train.delay == 1])
+        model = xgboost.XGBClassifier(random_state=1, learning_rate=0.01, scale_pos_weight=scale)
+
         model.fit(x_train, y_train)
         y_pred = model.predict(x_test)
 
-        self._model = model
+        self.load_model(model)
 
         return classification_report(y_test, y_pred, output_dict=True), model
 
@@ -106,13 +117,19 @@ class DelayModel:
 
         Args:
             features (pd.DataFrame): preprocessed data.
-        
+
         Returns:
             (List[int]): predicted targets.
         """
 
         if self._model is None:
-            # TODO: Update model function
-            self._model = None
+            with open("./models/model.pkl", "rb") as saved_model:
+                model = pickle.load(saved_model)
+                self._model = model
 
-        return self._model.predict(features)
+        predictions = np.array(self._model.predict(features))
+
+        return predictions.tolist()
+
+    def load_model(self, model):
+        self._model = model
