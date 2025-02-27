@@ -70,6 +70,7 @@ def update_model(model_name: str = None, cloud: bool = False):
 
                 with open('./models/model.pkl', 'wb') as file:
                     pickle.dump(model, file)
+                return 'Success'
             else:
                 raise HTTPException(status_code=404, detail=f'Model {model_name} does not exist in the bucket.')
 
@@ -80,9 +81,11 @@ def update_model(model_name: str = None, cloud: bool = False):
 
             with open('./models/model.pkl', 'wb') as file:
                 pickle.dump(model, file)
+            return 'Success'
         else:
             raise HTTPException(status_code=404, detail='There are no models in the bucket.')
 
     with open('./models/model.pkl', 'rb') as saved_model:
         saved_model = pickle.load(saved_model)
         model.load_model(model=saved_model)
+    return 'Success'
