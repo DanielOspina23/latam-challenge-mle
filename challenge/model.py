@@ -12,9 +12,11 @@ from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 
 from challenge.settings import Settings
+from challenge.utils.logger import get_logger
 from challenge.utils.preprocessor import Preprocessor
 
 settings = Settings()
+logger = get_logger()
 
 
 class DelayModel:
@@ -97,11 +99,12 @@ class DelayModel:
         """
 
         x_train, x_test, y_train, y_test = train_test_split(features, target, test_size=0.33, random_state=42)
-
+        logger.info('Split data')
         scale = len(y_train[y_train.delay == 0]) / len(y_train[y_train.delay == 1])
         model = xgboost.XGBClassifier(random_state=1, learning_rate=0.01, scale_pos_weight=scale)
 
         model.fit(x_train, y_train)
+        logger.info('Fit model')
         y_pred = model.predict(x_test)
 
         self.load_model(model)
