@@ -20,6 +20,6 @@ spec:
             - name: table_id
               value: training_metrics
             - name: REDIS_HOST
-              value: 10.151.64.163
+              value: 10.151.64.160
           ports:
             - containerPort: 8080
