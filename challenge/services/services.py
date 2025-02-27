@@ -55,7 +55,7 @@ def predict_service(data: RequestTemplate) -> list:
 
 
 def update_model(model_name: str = None, cloud: bool = False):
-    file_path = f'./models/model.pkl'
+    file_path = './models/model.pkl'
     if not os.path.exists(file_path) or cloud:
         if model_name:
             trained_model = get_file(file_name=model_name, bucket_name=settings.MODELS_BUCKET_NAME)
@@ -77,7 +77,7 @@ def update_model(model_name: str = None, cloud: bool = False):
             with open('./models/model.pkl', 'wb') as file:
                 pickle.dump(model, file)
         else:
-            raise HTTPException(status_code=404, detail=f'There are no models in the bucket.')
+            raise HTTPException(status_code=404, detail='There are no models in the bucket.')
 
     with open('./models/model.pkl', 'rb') as saved_model:
         saved_model = pickle.load(saved_model)

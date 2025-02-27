@@ -30,8 +30,8 @@ def get_training_data(bucket_name):
 def get_trained_model(bucket_name):
     latest_blob = get_last_file(bucket_name=bucket_name)
     return latest_blob.download_as_string()
-    
-    
+
+
 def save_model_in_storage(model, bucket_name) -> str:
     """
         Save a serialized model in Google Cloud Storage with a unique name based on UUID.

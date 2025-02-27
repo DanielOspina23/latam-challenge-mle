@@ -1,0 +1,5 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-f', 'Dockerfile', '-t', 'us-east1-docker.pkg.dev/tribal-map-452115-g0/latam-challenge-daniel-ospina/flight-delay:latest', '.']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-east1-docker.pkg.dev/tribal-map-452115-g0/latam-challenge-daniel-ospina/flight-delay:latest']
