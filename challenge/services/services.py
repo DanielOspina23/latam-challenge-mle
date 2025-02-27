@@ -21,12 +21,12 @@ def train_model(bucket_name: str, cloud_data: bool) -> str:
         last_file_data = get_training_data(bucket_name=bucket_name)
         data = load_data_from_csv(csv_data=last_file_data, cloud_data=cloud_data)
     else:
-        data = load_data_from_csv(csv_data='../data/data.csv', cloud_data=cloud_data)
+        data = load_data_from_csv(csv_data='./data/data.csv', cloud_data=cloud_data)
 
     features, target = model.preprocess(data=data, target_column='delay')
     metrics, training_model = model.fit(features=features, target=target)
 
-    with open('../models/model.pkl', 'wb') as file:
+    with open('./models/model.pkl', 'wb') as file:
         pickle.dump(model, file)
 
     file_name = save_model_in_storage(model=training_model, bucket_name=settings.MODELS_BUCKET_NAME)
@@ -55,7 +55,7 @@ def predict_service(data: RequestTemplate) -> list:
 
 
 def update_model(model_name: str = None, cloud: bool = False):
-    file_path = f'../models/model.pkl'
+    file_path = f'./models/model.pkl'
     if not os.path.exists(file_path) or cloud:
         if model_name:
             trained_model = get_file(file_name=model_name, bucket_name=settings.MODELS_BUCKET_NAME)
@@ -64,7 +64,7 @@ def update_model(model_name: str = None, cloud: bool = False):
                 model_trained = pickle.loads(trained_model)
                 model.load_model(model=model_trained)
 
-                with open('../models/model.pkl', 'wb') as file:
+                with open('./models/model.pkl', 'wb') as file:
                     pickle.dump(model, file)
             else:
                 raise HTTPException(status_code=404, detail=f'Model {model_name} does not exist in the bucket.')
@@ -74,11 +74,11 @@ def update_model(model_name: str = None, cloud: bool = False):
             model_trained = pickle.loads(last_model)
             model.load_model(model=model_trained)
 
-            with open('../models/model.pkl', 'wb') as file:
+            with open('./models/model.pkl', 'wb') as file:
                 pickle.dump(model, file)
         else:
             raise HTTPException(status_code=404, detail=f'There are no models in the bucket.')
 
-    with open('../models/model.pkl', 'rb') as saved_model:
+    with open('./models/model.pkl', 'rb') as saved_model:
         saved_model = pickle.load(saved_model)
         model.load_model(model=saved_model)
