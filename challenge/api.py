@@ -56,8 +56,8 @@ async def force_update_model(model_id: str, cloud: bool) -> dict:
     if model_id.endswith('.pkl'):
         raise HTTPException(status_code=400, detail='Model id should not have extension')
     try:
-        await update_model(model_name=f'{model_id}.pkl', cloud=cloud)
-        return {'updated_model': model_id}
+        status = await update_model(model_name=f'{model_id}.pkl', cloud=cloud)
+        return {'updated_model': model_id, 'status': status}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f'An error occurred during updating model: {str(e)}')
 
