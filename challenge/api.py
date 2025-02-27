@@ -32,7 +32,7 @@ async def post_predict(data: RequestTemplate) -> dict:
     try:
         predictions = predict_service(data=data.flights)
     except Exception as e:
-        raise HTTPException(status_code=500, detail='An error occurred during prediction: {str(e)}')
+        raise HTTPException(status_code=500, detail=f'An error occurred during prediction: {str(e)}')
 
     return {'predict': predictions}
 

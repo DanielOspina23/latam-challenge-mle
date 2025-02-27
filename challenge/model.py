@@ -22,7 +22,7 @@ class DelayModel:
     def __init__(
         self
     ):
-        self._model = None # Model should be saved in this attribute.
+        self._model = None  # Model should be saved in this attribute.
         self.preprocessor = Preprocessor()
         self.top_10_features = [
             "OPERA_Latin American Wings",
@@ -117,7 +117,7 @@ class DelayModel:
 
         Args:
             features (pd.DataFrame): preprocessed data.
-        
+
         Returns:
             (List[int]): predicted targets.
         """
