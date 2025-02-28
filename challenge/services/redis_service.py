@@ -1,8 +1,9 @@
 import hashlib
 import json
+from typing import List
 
 from challenge.redis.redis_client import get_redis_connection
-from challenge.schemas.templates import RequestTemplate
+from challenge.schemas.templates import FlightTemplate
 from challenge.settings import Settings
 
 settings = Settings()
@@ -10,7 +11,7 @@ settings = Settings()
 redis_client = get_redis_connection(redis_host=settings.REDIS_HOST, redis_port=settings.REDIS_PORT)
 
 
-def generate_request_key(data: RequestTemplate):
+def generate_request_key(data: List[FlightTemplate]):
     request_dicts = [item.dict() for item in data]
     request_str = json.dumps(request_dicts, sort_keys=True)
     return hashlib.md5(request_str.encode()).hexdigest()
