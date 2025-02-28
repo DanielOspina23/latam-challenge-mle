@@ -136,3 +136,23 @@ class DelayModel:
 
     def load_model(self, model):
         self._model = model
+
+    def predict_proba(self, features: pd.DataFrame) -> List[int]:
+        """
+            Predict probability of delays for new flights.
+
+            Args:
+                features (pd.DataFrame): preprocessed data.
+
+            Returns:
+                (List[int]): predicted probabilities.
+        """
+
+        if self._model is None:
+            with open("./models/model.pkl", "rb") as saved_model:
+                model = pickle.load(saved_model)
+                self._model = model
+
+        predictions = np.array(self._model.predict_proba(features))
+
+        return predictions.tolist()
